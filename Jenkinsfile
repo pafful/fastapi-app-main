@@ -35,7 +35,14 @@ pipeline {
             steps {
                 sh '''
                     cd backend
-                    uv run pytest -v
+
+
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install uv
+
+                    python3 -m uv sync --frozen
+
+                    python3 -m uv run pytest -v
                 '''
             }
         }
