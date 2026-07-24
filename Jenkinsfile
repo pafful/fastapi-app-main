@@ -8,45 +8,56 @@ pipeline {
             }
         }
 
-        stage('Python Setup') {
+        stage('List Files') {
             steps {
                 sh '''
-                    python3 --version
-                    python3 -m venv .jenkins-venv
-                    . .jenkins-venv/bin/activate
+                    pwd
+                    ls -la
+                    find . -maxdepth 2 -type f | sort
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    cd backend
+                    python3 -m venv .venv
+                    . .venv/bin/activate
                     python -m pip install --upgrade pip
-                    pip install -r requirements.txt
+                    pip install uv
+                    uv sync --frozen
                 '''
             }
         }
 
-        stage('Unit Tests') {
+        stage('Run Tests') {
             steps {
                 sh '''
-                    . .jenkins-venv/bin/activate
-                    pytest -v
+                    cd backend
+                    uv run pytest -v
                 '''
             }
         }
 
-       stage('Build Backend Image') {
-        steps {
-            sh '''
-                docker build \
-                -t fastapi-backend:${BUILD_NUMBER} \
-                ./backend
-            '''
-        }
-    }
-
-    stage('Build Frontend Image') {
+        stage('Build Backend Image') {
             steps {
                 sh '''
                     docker build \
-                    -t fastapi-frontend:${BUILD_NUMBER} \
-                    ./frontend
+                    -t fastapi-backend:${BUILD_NUMBER} \
+                    ./backend
                 '''
             }
+        }
+
+        stage('Build Frontend Image') {
+                steps {
+                    sh '''
+                        docker build \
+                        -t fastapi-frontend:${BUILD_NUMBER} \
+                        ./frontend
+                    '''
+                }
         }
     }
 
