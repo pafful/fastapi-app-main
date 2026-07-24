@@ -32,16 +32,17 @@ pipeline {
         }
 
         stage('Run Tests') {
+            environment {
+                DATABASE_URL = 'postgresql+psycopg://postgres:your-password@localhost:5432/app'
+            }
+
             steps {
                 sh '''
                     cd backend
 
-
                     python3 -m pip install --upgrade pip
                     python3 -m pip install uv
-
                     python3 -m uv sync --frozen
-
                     python3 -m uv run pytest -v
                 '''
             }
